@@ -4,14 +4,14 @@
 __global__ void hello_world(void) {
     printf("block idx:%d thread idx: %d\n", blockIdx.x, threadIdx.x);
     if (threadIdx.x == 0) {
-      printf("GPU: Hello world!\n");
+      printf("[Thread0]GPU: Hello world!\n");
     }
   }
 
 int main(int argc,char **argv){
     printf("CPU Hello World!\n");
-    hello_world<<<1, 10>>>();  
-    cudaDeviceSynchronize();
+    hello_world<<<1, 10>>>();  // 1个block，10个thread
+    cudaDeviceSynchronize(); // 阻塞主线程，等待kernel执行完成
     if (cudaGetLastError() != cudaSuccess) {
         std::cerr << "CUDA error: " << cudaGetErrorString(cudaGetLastError())
                 << std::endl;
