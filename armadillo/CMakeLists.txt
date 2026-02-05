@@ -8,16 +8,18 @@ find_package(glog REQUIRED)
 find_package(GTest REQUIRED)
 
 # 主程序
-add_executable(matrix_demo main.cpp)
-target_include_directories(matrix_demo PRIVATE ${ARMADILLO_INCLUDE_DIRS})
+add_executable(matrix_demo test/main.cpp)
+target_include_directories(matrix_demo PRIVATE ${ARMADILLO_INCLUDE_DIRS} 
+                            include)
 target_link_libraries(matrix_demo PRIVATE ${ARMADILLO_LIBRARIES})
 target_link_libraries(matrix_demo PRIVATE glog::glog)
 
 
 
 # 测试程序
-add_executable(test_matrix_ops test_matrix_ops.cpp)
-target_include_directories(test_matrix_ops PRIVATE ${ARMADILLO_INCLUDE_DIRS})
+add_executable(test_matrix_ops test/test_matrix_ops.cpp)
+target_include_directories(test_matrix_ops PRIVATE ${ARMADILLO_INCLUDE_DIRS}
+                            include)
 target_link_libraries(test_matrix_ops PRIVATE ${ARMADILLO_LIBRARIES})
 target_link_libraries(test_matrix_ops PRIVATE glog::glog)
 target_link_libraries(test_matrix_ops PRIVATE GTest::gtest GTest::gtest_main)

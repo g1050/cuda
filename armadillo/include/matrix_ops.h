@@ -4,7 +4,13 @@
 #include <armadillo>
 #include <glog/logging.h>
 
-// 手动实现矩阵加法
+/**
+ * @brief 手动实现矩阵加法
+ * 
+ * @param A 矩阵A
+ * @param B 矩阵B
+ * @return 矩阵C
+ */
 arma::mat manual_matrix_add(const arma::mat& A, const arma::mat& B) {
     // 检查矩阵维度是否匹配
     if (A.n_rows != B.n_rows || A.n_cols != B.n_cols) {
