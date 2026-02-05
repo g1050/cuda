@@ -48,6 +48,7 @@ void test_vec_add(){
     int numBlocks = (N + BLOCK_SIZE - 1) / BLOCK_SIZE; // 向上取整
     std::cout << "numBlocks: " << numBlocks << std::endl;
     vec_add_cuda_kernel1<<<numBlocks, BLOCK_SIZE>>>(d_A, d_B, d_C, N);
+    cudaDeviceSynchronize();
     cudaMemcpy(C, d_C, N * sizeof(int), cudaMemcpyDeviceToHost);
     print_output<int>(A, 1, N);
     print_output<int>(C, 1, N);

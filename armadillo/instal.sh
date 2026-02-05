@@ -9,6 +9,7 @@ fi; \
 apt install -y libarmadillo-dev libopenblas-dev liblapack-dev
 apt install -y libgoogle-glog-dev
 apt install -y libgtest-dev
-apt install doxygen graphviz
+apt install -y doxygen graphviz
+apt install -y libbenchmark-dev
 
 docker pull swr.cn-north-4.myhuaweicloud.com/xkgao/infer_env:v1.0

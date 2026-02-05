@@ -1,5 +1,8 @@
 {
+    "C_Cpp.intelliSenseEngine": "Disabled", 
     "clangd.arguments": [
-        "--compile-commands-dir=/root/autodl-tmp/cuda/softmax/build/compile_commands.json"
-    ]
+      "--completion-style=detailed",
+      "--clang-tidy",
+      "--compile-commands-dir=/root/autodl-tmp/cuda/",
+    ],
 }
