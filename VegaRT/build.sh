@@ -3,11 +3,11 @@ set -e
 cmake -S . -B ./build
 cmake --build ./build -j
 
-# pushd build
-# ctest -V
-# # ctest
-# popd
+pushd build
+ctest -R test_pnnx -V
+# ctest
+popd
 
-build/test_tensor
+# build/test_tensor
 
-cp ./build/compile_commands.json ../
+# cp ./build/compile_commands.json ../

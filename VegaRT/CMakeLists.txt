@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.18)
-project(test_arma CXX)
+project(vega_rt CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -8,28 +8,28 @@ find_package(Armadillo REQUIRED)
 find_package(glog REQUIRED)
 find_package(GTest REQUIRED)
 
-set(LIB_SOURCES
-    src/tensor.cpp
-)
-set(EXEC_SOURCES
-    test/test_tensor.cpp
-)
 set(link_lib glog::glog GTest::gtest)
 
-add_library(tensor STATIC ${LIB_SOURCES})
-target_include_directories(tensor PRIVATE include)
-target_link_libraries(tensor PRIVATE ${ARMADILLO_LIBRARIES})
+add_subdirectory(3rd_party)
+file(GLOB LIB_SOURCES src/*.cpp)
+file(GLOB TEST_SOURCES test/*.cpp)
+add_library(vega_rt STATIC ${LIB_SOURCES})
+target_include_directories(vega_rt PRIVATE include)
+target_link_libraries(vega_rt PRIVATE ${link_lib} pnnx)
+target_include_directories(vega_rt PUBLIC 3rd_party)
 
-set(TEST_SOURCES
-    test/test_tensor.cpp
-)
-add_executable(test_tensor ${TEST_SOURCES})
-target_include_directories(test_tensor PRIVATE include)
-target_link_libraries(test_tensor PRIVATE tensor)
-target_link_libraries(test_tensor PRIVATE ${link_lib})
-
-# 启用测试
 enable_testing()
-add_test(NAME TensorTests COMMAND test_tensor)
+foreach(test_src ${TEST_SOURCES})
+    # 获取文件名，不含扩展名
+    get_filename_component(test_name ${test_src} NAME_WE)
+    # 生成可执行文件
+    add_executable(${test_name} ${test_src})
+    target_include_directories(${test_name} PRIVATE include)
+    target_include_directories(${test_name} PRIVATE 3rd_party)
+    target_link_libraries(${test_name} PRIVATE vega_rt)
+    target_link_libraries(${test_name} PRIVATE ${link_lib})
+    add_test(NAME ${test_name} COMMAND ${test_name})
+endforeach()
+
 
 

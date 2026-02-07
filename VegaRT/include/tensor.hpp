@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <memory>
 #include <vector>
-
+#include <memory>
 namespace vega_rt {
 
     template<typename T = float>
@@ -36,5 +36,8 @@ namespace vega_rt {
             std::vector<uint32_t> raw_shape_;
             arma::fcube data_;
     };
+
+    using TensorSP = std::shared_ptr<Tensor<float>>;
+
 
 }
