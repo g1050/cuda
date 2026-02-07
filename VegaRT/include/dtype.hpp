@@ -24,4 +24,9 @@ namespace vega_rt {
         FloatArray = 6,
         StringArray = 7,
       };
+
+    enum class VegaError {
+        Success = 0,
+        InvalidParam = 1,
+    };
 }

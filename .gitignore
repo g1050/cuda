@@ -2,3 +2,6 @@ bin
 download
 build
 .cache
+*.pt
+*.onnx
+model_file

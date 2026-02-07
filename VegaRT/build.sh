@@ -4,7 +4,7 @@ cmake -S . -B ./build
 cmake --build ./build -j
 
 pushd build
-ctest -R test_pnnx -V
+ctest -R test_ir -V
 # ctest
 popd
 
