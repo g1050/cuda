@@ -1,0 +1,8 @@
+{
+    "C_Cpp.intelliSenseEngine": "Disabled", 
+    "clangd.arguments": [
+      "--completion-style=detailed",
+      "--clang-tidy",
+      "--compile-commands-dir=/root/autodl-tmp/cuda/",
+    ],
+}
