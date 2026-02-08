@@ -80,7 +80,6 @@ namespace vega_rt {
             // 记录前驱节点的名字
             operand_sp->name_ = pnnx_operand->producer->name;
 
-            LOG(WARNING) << "pnnx operand->name_: " << pnnx_operand->name << " producer name: " << pnnx_operand->producer->name;
             // shape和type含义相同直接赋值
             operand_sp->shapes_ = pnnx_operand->shape;
             if (pnnx_operand->type != 1) {
@@ -183,6 +182,7 @@ namespace vega_rt {
             switch (type) {
                 case 1:{
                     AttributeSP attribute_float = std::make_shared<Attribute>();
+                    // 拷贝赋值
                     attribute_float->weight_data_ = attr.data;
                     attribute_float->shape_ = attr.shape;
                     attribute_float->type_ = DataType::Float32;
@@ -196,5 +196,84 @@ namespace vega_rt {
             }
         }
         return VegaError::Success;
+    }
+
+    VegaError Graph::Build(std::string input_name, std::string output_name) {
+        input_name_ = input_name;
+        output_name_ = output_name;
+        if (graph_state_ == GraphState::NeedInit) {
+            VegaError error = Init();
+            if (error != VegaError::Success) {
+                LOG(ERROR) << "init graph failed";
+                return error;
+            }
+        }
+        if (graph_state_ == GraphState::Complete) {
+            LOG(WARNING) << "graph is already built, skip build";
+            return VegaError::Success;
+        }
+
+        // 构建计算图,每个节点指向所有下一个计算节点，保存在output_operators_map_
+        for(const auto &current_operator : operators_list_) {
+            for(const auto &output_name : current_operator->output_names_) {
+                auto output_operator = operators_map_.find(output_name);
+                if (output_operator != operators_map_.end()) {
+                    current_operator->output_operators_map_.insert(std::make_pair(output_name, output_operator->second));
+                }
+            }
+        }
+
+        // 初始化节点的输入和输出空间
+        VegaError error = OperatorUtils::InitOperatorInput(operators_list_);
+        if (error != VegaError::Success) {
+            LOG(ERROR) << "init operator input failed";
+            return error;
+        }
+        error = OperatorUtils::InitOperatorOutput(pnnx_graph_->ops, operators_list_);
+        if (error != VegaError::Success) {
+            LOG(ERROR) << "init operator output failed";
+            return error;
+        }
+
+        //  拓扑排序
+        topo_operators_.clear();
+        for (const auto &[_, op] : operators_map_) {
+            // 根据输入节点构建拓扑排序
+            if (op->type_ == "pnnx.Input" && !op->has_forward_) {
+              this->ReverseTopo(op); // 根节点
+            }
+        }
+
+        // 确保所有节点排序完成
+        CHECK_EQ(topo_operators_.size(), operators_list_.size());
+        // reverse topo_operators_
+        std::reverse(topo_operators_.begin(), topo_operators_.end());
+
+        graph_state_ = GraphState::Complete;
+
+        // 析构pnnx_graph_
+        if(pnnx_graph_ != nullptr) {
+            pnnx_graph_.reset();
+            pnnx_graph_ = nullptr;
+        }
+        return VegaError::Success;
+    }
+
+    void Graph::ReverseTopo(
+        const std::shared_ptr<Operator> &root_op) {
+      CHECK(root_op != nullptr) << "current operator is nullptr";
+      root_op->has_forward_ = true;
+      const auto &next_ops = root_op->output_operators_map_;
+      for (const auto &[_, op] : next_ops) {
+        if (op != nullptr) {
+          if (!op->has_forward_) {
+            this->ReverseTopo(op);
+          }
+        }
+      }
+      for (const auto &[_, op] : next_ops) {
+        CHECK_EQ(op->has_forward_, true);
+      }
+      this->topo_operators_.push_back(root_op); // 递归出口，当节点出度为0的时候
     }
 }//namespace vega_rt

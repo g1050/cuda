@@ -3,6 +3,7 @@
 #include "parameter.hpp"
 #include "attribute.hpp"
 #include "operand.hpp"
+#include <pnnx/ir.h>
 namespace vega_rt {
     class Operator;
     using OperatorSP = std::shared_ptr<Operator>;
@@ -30,8 +31,35 @@ namespace vega_rt {
 
             // 输出操作数
             std::vector<std::string> output_names_;
+            OperandSP output_operand_; //只支持单输出的算子
+
+            // 输出节点
+            std::map<std::string, OperatorSP> output_operators_map_;
 
             // todo: 计算节点Layer
 
+            // 标记该节点是否已读，用于递归拓扑排序
+            bool has_forward_ = false;
+
+    };
+
+    class OperatorUtils {
+        public:
+            /**
+             * @brief 初始化算子的输入
+             * 
+             * @param operator_spv 
+             * @return VegaError 
+             */
+            static VegaError InitOperatorInput(std::vector<OperatorSP> operator_spv);
+            /**
+             * @brief 初始化算子的输出
+             * 
+             * @param pnnx_operators pnnx算子
+             * @param operators vega算子
+             * @return VegaError 
+             */
+            static VegaError InitOperatorOutput(const std::vector<pnnx::Operator *> &pnnx_operators,
+                const std::vector<OperatorSP> &operators); 
     };
 }

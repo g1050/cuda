@@ -1,7 +1,8 @@
 #include "utils.hpp"
 #include "dtype.hpp"
 #include <sstream>
-
+#include "common.hpp"
+#include "tensor.hpp"
 namespace vega_rt {
     std::string ShapeStr(const std::vector<int> &shapes) {
         std::ostringstream ss;
@@ -59,5 +60,25 @@ namespace vega_rt {
             default:
                 return "unknown";
         }
+    }
+
+    TensorSP TensorCreate(uint32_t channels, uint32_t rows,
+        uint32_t cols) {
+        return std::make_shared<Tensor<float>>(channels, rows, cols);
+    }
+
+    TensorSP TensorCreate(uint32_t rows, uint32_t cols) {
+        return std::make_shared<Tensor<float>>(1, rows, cols);
+    }
+
+    TensorSP TensorCreate(uint32_t size) {
+        return std::make_shared<Tensor<float>>(1, 1, size);
+    }
+
+
+    TensorSP TensorCreate(
+        const std::vector<uint32_t> &shapes) {
+      CHECK(shapes.size() == 3);
+      return TensorCreate(shapes.at(0), shapes.at(1), shapes.at(2));
     }
 }

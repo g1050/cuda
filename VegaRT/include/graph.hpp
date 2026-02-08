@@ -28,12 +28,36 @@ namespace vega_rt {
              */
             Graph(const std::string& param_path, const std::string& bin_path);
             ~Graph();
+            
+            /**
+             * @brief 初始化，从PNNX计算图创建Vega计算图
+             * 
+             * @return VegaError 
+             */
             VegaError Init();
+            
+            /**
+             * @brief 获取Vega计算图的operators列表
+             * 
+             * @return const std::vector<OperatorSP>& 
+             */
             const std::vector<OperatorSP>& operators() const;
-            // int load(const std::string& parampath, const std::string& binpath);
-            // int save(const std::string& parampath, const std::string& binpath);
-            // int python(const std::string& pypath, const std::string& binpath);
-            // int parse(const std::string& param);
+
+             /**
+              * @brief 构建计算图，只支持单输入单输出
+              * 
+              * @param input_name 
+              * @param output_name 
+              * @return VegaError 
+              */
+             VegaError Build(std::string input_name, std::string output_name);
+
+             /**
+             * @brief 获取拓扑排序后的队列
+             * 
+             * @return const std::vector<OperatorSP>& 
+             */
+            const std::vector<OperatorSP>& get_topo_queues() const{return topo_operators_;};
         private:
             std::string param_path_;
             std::string bin_path_;
@@ -42,6 +66,19 @@ namespace vega_rt {
 
             std::map<std::string, OperatorSP> operators_map_; // 节点名称:VegaOperator
             std::vector<OperatorSP> operators_list_; // 节点列表
+
+            std::string input_name_;
+            std::string output_name_;
+
+            enum class GraphState {
+                NeedInit = -2, //pnnx->vegaRt
+                NeedBuild = -1, //
+                Complete = 0,
+            };
+            GraphState graph_state_ = GraphState::NeedInit; // 计算图状态
+
+            std::vector<OperatorSP> topo_operators_; // 拓扑排序后的节点列表
+        private:
             /**
              * @brief 初始化输入操作数
              * 
@@ -75,5 +112,13 @@ namespace vega_rt {
              */
             VegaError InitGraphAttrs(OperatorSP operator_sp, std::map<std::string, pnnx::Attribute> attrs);
 
+            /**
+             * @brief 拓扑排序
+             * 
+             * @param root_op 根节点
+             */
+            void ReverseTopo(const std::shared_ptr<Operator> &root_op);
+
+            
         };
 }
