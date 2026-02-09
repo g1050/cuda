@@ -24,6 +24,11 @@ namespace vega_rt {
         }
     }
 
+    Tensor<float>::Tensor(const std::vector<uint32_t> &shapes) //委托构造函数
+        : Tensor(shapes[0], shapes[1], shapes[2]) {
+        CHECK_EQ(shapes.size(), 3);
+    }
+
     float Tensor<float>::at(uint32_t channel, uint32_t row, uint32_t col) const { 
         CHECK_LT(channel, raw_shape_[0]);
         CHECK_LT(row, raw_shape_[1]);
@@ -49,5 +54,19 @@ namespace vega_rt {
 
     void Tensor<float>::show_shape() const {
         LOG(WARNING) << "shape: " << raw_shape_[0] << "x" << raw_shape_[1] << "x" << raw_shape_[2];
+    }
+
+    arma::fcube &Tensor<float>::data() {
+        return data_;
+    }
+
+    void Tensor<float>::Rand() {
+        // check data_ is not empty
+        CHECK(!data_.empty());
+        data_.randn();
+    }
+
+    void Tensor<float>::Show() const {
+        LOG(INFO) << data_;
     }
 }

@@ -14,6 +14,18 @@ namespace vega_rt {
         }
         return ss.str();
     }
+
+    std::string ShapeStr(const std::vector<uint32_t> &shapes) {
+        std::ostringstream ss;
+        for (int i = 0; i < shapes.size(); ++i) {
+            ss << shapes.at(i);
+            if (i != shapes.size() - 1) {
+                ss << " x ";
+            }
+        }
+        return ss.str();
+    }
+
     std::string ParameterTypeStr(ParameterType type) {
         switch (type) {
             case ParameterType::Bool:

@@ -11,6 +11,7 @@ namespace vega_rt {
      * @return std::string 形状字符串
      */
     std::string ShapeStr(const std::vector<int> &shapes);
+    std::string ShapeStr(const std::vector<uint32_t> &shapes);
     /**
      * @brief 将参数类型转换为字符串
      * 

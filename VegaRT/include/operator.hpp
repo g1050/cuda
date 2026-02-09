@@ -4,6 +4,7 @@
 #include "attribute.hpp"
 #include "operand.hpp"
 #include <pnnx/ir.h>
+#include "layer/layer.hpp"
 namespace vega_rt {
     class Operator;
     using OperatorSP = std::shared_ptr<Operator>;
@@ -36,7 +37,8 @@ namespace vega_rt {
             // 输出节点
             std::map<std::string, OperatorSP> output_operators_map_;
 
-            // todo: 计算节点Layer
+            // 计算节点Layer
+            std::shared_ptr<Layer> layer_;
 
             // 标记该节点是否已读，用于递归拓扑排序
             bool has_forward_ = false;

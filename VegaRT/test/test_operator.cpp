@@ -1,0 +1,92 @@
+#include "tensor.hpp"
+#include "common.hpp"
+#include <gtest/gtest.h>
+#include <iostream>
+#include "layer/layer_factory.hpp"
+#include "utils.hpp"
+static vega_rt::LayerRegisterer::CreateRegistry *RegistryGlobal() {
+    static vega_rt::LayerRegisterer::CreateRegistry *kRegistry = new vega_rt::LayerRegisterer::CreateRegistry();
+    CHECK(kRegistry != nullptr) << "Global layer register init failed!";
+    return kRegistry;
+}
+
+TEST(test_registry, registry1) {
+    // 同一个实例对象
+    vega_rt::LayerRegisterer::CreateRegistry *registry1 = RegistryGlobal();
+    vega_rt::LayerRegisterer::CreateRegistry *registry2 = RegistryGlobal();
+    ASSERT_EQ(registry1, registry2);
+}
+
+vega_rt::VegaError MyTestCreator(
+    const vega_rt::OperatorSP &op,
+    vega_rt::LayerSP &layer) {
+
+  layer = std::make_shared<vega_rt::Layer>("test_layer");
+  return vega_rt::VegaError::Success;
+}
+
+TEST(test_registry, registry2) {
+    vega_rt::LayerRegisterer::CreateRegistry registry1 = vega_rt::LayerRegisterer::Registry();
+    vega_rt::LayerRegisterer::CreateRegistry registry2 = vega_rt::LayerRegisterer::Registry();
+    vega_rt::LayerRegisterer::RegisterCreator("test_type", MyTestCreator);
+    vega_rt::LayerRegisterer::RegisterCreator("test_type2", MyTestCreator);
+
+    vega_rt::LayerRegisterer::CreateRegistry registry3 = vega_rt::LayerRegisterer::Registry();
+    ASSERT_EQ(registry1, registry2);
+    ASSERT_EQ(registry3.size(), 3);
+    ASSERT_NE(registry3.find("test_type"), registry3.end());
+  }
+
+TEST(test_registry, create_layer) {
+    // 注册了一个test_type_1算子
+    vega_rt::LayerRegisterer::RegisterCreator("test_type_1", MyTestCreator);
+    vega_rt::OperatorSP op = std::make_shared<vega_rt::Operator>();
+    op->type_ = "test_type_1";
+    vega_rt::LayerSP layer;
+    ASSERT_EQ(layer, nullptr);
+    layer = vega_rt::LayerRegisterer::CreateLayer(op);
+    ASSERT_NE(layer, nullptr);
+}
+
+TEST(test_registry, create_layer_util) {
+    // 注册算子
+    vega_rt::LayerRegistererWrapper kReluGetInstance("test_type_2", MyTestCreator);
+    vega_rt::OperatorSP op = std::make_shared<vega_rt::Operator>();
+    op->type_ = "test_type_2";
+    vega_rt::LayerSP layer;
+    ASSERT_EQ(layer, nullptr);
+    // 用operator创建算子
+    layer = vega_rt::LayerRegisterer::CreateLayer(op);
+    ASSERT_NE(layer, nullptr);
+}
+
+TEST(test_registry, create_layer_reluforward) {
+    vega_rt::OperatorSP op = std::make_shared<vega_rt::Operator>();
+    op->type_ = "nn.ReLU";
+    vega_rt::LayerSP layer;
+    ASSERT_EQ(layer, nullptr);
+    layer = vega_rt::LayerRegisterer::CreateLayer(op);
+    ASSERT_NE(layer, nullptr);
+  
+    vega_rt::TensorSP input_tensor = std::make_shared<vega_rt::Tensor<float>>(3, 4, 4);
+    input_tensor->Rand(); // 随机初始化
+    input_tensor->data() -= 0.5f; // arma::fcube - 0.5f
+  
+    LOG(INFO) << input_tensor->data();
+  
+    std::vector<vega_rt::TensorSP> inputs(1); // batch size
+    std::vector<vega_rt::TensorSP> outputs(1);
+    inputs.at(0) = input_tensor;
+    LOG(ERROR) << "inputTensor empty: " << input_tensor->empty();
+    LOG(ERROR) << "inputTensor shape: " << vega_rt::ShapeStr(input_tensor->shapes());
+    layer->Forward(inputs, outputs);
+    for (const auto &output : outputs) {
+      output->Show();
+    }
+  }
+
+int main(int argc, char** argv) {
+    vega_rt::init_logging(argc, argv);
+    ::testing::InitGoogleTest(&argc, argv);
+    return RUN_ALL_TESTS();
+}
