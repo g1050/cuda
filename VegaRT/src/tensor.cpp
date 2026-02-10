@@ -69,4 +69,9 @@ namespace vega_rt {
     void Tensor<float>::Show() const {
         LOG(INFO) << data_;
     }
+
+    std::vector<uint32_t> Tensor<float>::shapes() const {
+        CHECK(!this->data_.empty());
+        return {this->channels(), this->rows(), this->cols()};
+    }
 }

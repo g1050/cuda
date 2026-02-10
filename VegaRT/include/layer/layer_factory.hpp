@@ -42,10 +42,10 @@ namespace vega_rt {
             */
             static CreateRegistry &Registry();
         
-            // /**
-            // * 返回所有已被注册算子的类型
-            // * @return 注册算子的类型列表
-            // */
+            /**
+            * 返回所有已被注册算子的类型
+            * @return 注册算子的类型列表
+            */
             // static std::vector<std::string> layer_types();
        };
 

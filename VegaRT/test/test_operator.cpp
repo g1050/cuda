@@ -33,7 +33,7 @@ TEST(test_registry, registry2) {
 
     vega_rt::LayerRegisterer::CreateRegistry registry3 = vega_rt::LayerRegisterer::Registry();
     ASSERT_EQ(registry1, registry2);
-    ASSERT_EQ(registry3.size(), 3);
+    // ASSERT_EQ(registry3.size(), 3); //算子在不断增加,所以不能这样判断
     ASSERT_NE(registry3.find("test_type"), registry3.end());
   }
 
@@ -83,7 +83,37 @@ TEST(test_registry, create_layer_reluforward) {
     for (const auto &output : outputs) {
       output->Show();
     }
-  }
+}
+
+TEST(test_registry, create_layer_sigmoid_forward) {
+    std::shared_ptr<vega_rt::Operator> op = std::make_shared<vega_rt::Operator>();
+    op->type_ = "nn.Sigmoid";
+    std::shared_ptr<vega_rt::Layer> layer;
+    ASSERT_EQ(layer, nullptr);
+    layer = vega_rt::LayerRegisterer::CreateLayer(op);
+    ASSERT_NE(layer, nullptr);
+  
+    vega_rt::TensorSP input_tensor = std::make_shared<vega_rt::Tensor<float>>(3, 4, 4);
+    input_tensor->Rand();
+  
+    std::vector<vega_rt::TensorSP> inputs(1);
+    std::vector<vega_rt::TensorSP> outputs(1);
+    inputs.at(0) = input_tensor;
+    layer->Forward(inputs, outputs);
+  
+    ASSERT_EQ(outputs.size(), 1);
+    vega_rt::TensorSP output_tensor = outputs.front();
+    ASSERT_EQ(output_tensor->empty(), false);
+    ASSERT_EQ(output_tensor->size(), input_tensor->size());
+  
+    uint32_t size = output_tensor->size();
+    // 评价sigmoid的计算结果是否正确
+    for (uint32_t i = 0; i < size; ++i) {
+      float input_value = input_tensor->index(i);
+      float output_value = output_tensor->index(i);
+      ASSERT_EQ(output_value, 1 / (1.f + expf(-input_value)));
+    }
+}
 
 int main(int argc, char** argv) {
     vega_rt::init_logging(argc, argv);

@@ -35,6 +35,7 @@ namespace vega_rt {
             void Fill(const std::vector<float>& values, bool row_major) ;
             uint32_t size() const { return data_.n_elem; }
             void show_shape() const ;
+            float index(uint32_t index) const { return data_.at(index); }
 
             /**
             * 返回张量中的数据
@@ -57,10 +58,7 @@ namespace vega_rt {
             uint32_t channels() const { return this->data_.n_slices; }
             uint32_t rows() const { return this->data_.n_rows; }
             uint32_t cols() const { return this->data_.n_cols; }
-            std::vector<uint32_t> shapes() const {
-                CHECK(!this->data_.empty());
-                return {this->channels(), this->rows(), this->cols()};
-            }
+            std::vector<uint32_t> shapes() const ;
 
         private:    
             std::vector<uint32_t> raw_shape_;
