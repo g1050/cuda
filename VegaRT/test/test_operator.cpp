@@ -116,6 +116,43 @@ TEST(test_registry, create_layer_sigmoid_forward) {
     }
 }
 
+TEST(test_registry, create_layer_maxpooling_forward) {
+  std::shared_ptr<vega_rt::Operator> op = std::make_shared<vega_rt::Operator>();
+  op->type_ = "nn.MaxPool2d";
+  std::vector<int> strides{2, 2};
+  std::shared_ptr<vega_rt::ParameterIntArray> stride_param = std::make_shared<vega_rt::ParameterIntArray>(strides);
+  op->params_.insert({"stride", stride_param});
+
+  std::vector<int> kernel{2, 2};
+  std::shared_ptr<vega_rt::ParameterIntArray> kernel_param = std::make_shared<vega_rt::ParameterIntArray>(kernel);
+  op->params_.insert({"kernel_size", kernel_param});
+
+  std::vector<int> paddings{1, 1};
+  std::shared_ptr<vega_rt::ParameterIntArray> padding_param = std::make_shared<vega_rt::ParameterIntArray>(paddings);
+  op->params_.insert({"padding", padding_param});
+
+  std::shared_ptr<vega_rt::Layer> layer;
+  layer = vega_rt::LayerRegisterer::CreateLayer(op);
+  ASSERT_NE(layer, nullptr);
+
+  // 设置输入、输出Tensor
+  vega_rt::TensorSP tensor = vega_rt::TensorCreate(1, 4, 4);
+  arma::fmat input = arma::fmat("1,2,3,4;"
+                                "2,3,4,5;"
+                                "3,4,5,6;"
+                                "4,5,6,7");
+  tensor->data().slice(0) = input;
+  std::vector<vega_rt::TensorSP> inputs(1);
+  inputs.at(0) = tensor;
+  std::vector<vega_rt::TensorSP> outputs(1);
+  layer->Forward(inputs, outputs);
+
+  for (const auto &output : outputs) {
+    output->Show();
+  }
+
+}
+
 TEST(test_registry, create_layer_conv_forward) {
     uint32_t batch_size = 1;
     std::vector<vega_rt::TensorSP> inputs(batch_size);

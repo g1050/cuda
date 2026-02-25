@@ -59,6 +59,7 @@ namespace vega_rt {
             uint32_t rows() const { return this->data_.n_rows; }
             uint32_t cols() const { return this->data_.n_cols; }
             std::vector<uint32_t> shapes() const ;
+            arma::fmat &slice(uint32_t channel);
 
         private:    
             std::vector<uint32_t> raw_shape_;

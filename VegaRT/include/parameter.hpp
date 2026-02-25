@@ -44,6 +44,7 @@ namespace vega_rt {
 
 	struct ParameterIntArray : public Parameter {
 	ParameterIntArray() : Parameter(ParameterType::IntArray) {}
+	explicit ParameterIntArray(const std::vector<int> &value) : Parameter(ParameterType::IntArray), value_(value) {}
 	std::vector<int> value_;
 	};
 

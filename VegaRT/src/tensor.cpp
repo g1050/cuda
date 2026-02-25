@@ -74,4 +74,9 @@ namespace vega_rt {
         CHECK(!this->data_.empty());
         return {this->channels(), this->rows(), this->cols()};
     }
+
+    arma::fmat &Tensor<float>::slice(uint32_t channel) {
+        CHECK_LT(channel, this->channels());
+        return data_.slice(channel);
+    }
 }
