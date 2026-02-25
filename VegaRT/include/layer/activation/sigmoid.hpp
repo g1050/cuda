@@ -1,5 +1,5 @@
 #pragma once
-#include "layer.hpp"
+#include "../layer.hpp"
 namespace vega_rt {
     class SigmoidLayer : public NonParameterLayer {
         public:

@@ -1,8 +1,10 @@
 #include "layer/layer.hpp"
+#include "dtype.hpp"
 #include "operator.hpp"
 #include "operand.hpp"
+#include "tensor.hpp"
 #include <glog/logging.h>
-
+#include "utils.hpp"
 namespace vega_rt {
     VegaError Layer::Forward() {
         const auto &operator_sp = operator_.lock();
@@ -30,5 +32,22 @@ namespace vega_rt {
         
         return VegaError::Success;
     }
-    
+
+    ParameterLayer::ParameterLayer(std::string layer_name) : Layer(layer_name) {}
+
+    void ParameterLayer::InitWeightParameters(const uint32_t param_count, const uint32_t param_channel,
+        const uint32_t param_height, const uint32_t param_width) {
+        this->weight_tensors_ = std::vector<TensorSP>(param_count);
+        for(uint32_t i = 0; i < param_count; ++i) {
+            this->weight_tensors_.at(i) = vega_rt::TensorCreate(param_channel, param_height, param_width);
+        }
+    }
+
+    void ParameterLayer::InitBiasParameters(const uint32_t param_count, const uint32_t param_channel,
+        const uint32_t param_height, const uint32_t param_width) {
+        this->bias_tensors_ = std::vector<TensorSP>(param_count);
+        for(uint32_t i = 0; i < param_count; ++i) {
+            this->bias_tensors_.at(i) = vega_rt::TensorCreate(param_channel, param_height, param_width);
+        }
+    }
 }

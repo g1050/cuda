@@ -1,3 +1,4 @@
+#include "layer/vision/conv.hpp"
 #include "tensor.hpp"
 #include "common.hpp"
 #include <gtest/gtest.h>
@@ -113,6 +114,35 @@ TEST(test_registry, create_layer_sigmoid_forward) {
       float output_value = output_tensor->index(i);
       ASSERT_EQ(output_value, 1 / (1.f + expf(-input_value)));
     }
+}
+
+TEST(test_registry, create_layer_conv_forward) {
+    uint32_t batch_size = 1;
+    std::vector<vega_rt::TensorSP> inputs(batch_size);
+    std::vector<vega_rt::TensorSP> outputs(batch_size);
+
+    const uint32_t kernel_h = 3;
+    const uint32_t kernel_w = 3;
+    const uint32_t stride_h = 1;
+    const uint32_t stride_w = 1;
+    const uint32_t kernel_count = 2;
+    const uint32_t input_channel = 3;
+    const uint32_t output_channel = 2;
+    const uint32_t padding_h = 1;
+    const uint32_t padding_w = 1;
+    const uint32_t groups = 1;
+    const bool use_bias = true;
+    vega_rt::ConvLayer layer(output_channel,
+      input_channel,
+      kernel_h,
+      kernel_w,
+      stride_h,
+      stride_w,
+      padding_h,
+      padding_w,
+      groups,
+      use_bias);
+    layer.Forward(inputs, outputs);
 }
 
 int main(int argc, char** argv) {
