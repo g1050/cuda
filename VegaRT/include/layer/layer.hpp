@@ -58,7 +58,13 @@ namespace vega_rt {
              */
             void InitBiasParameters(const uint32_t param_count, const uint32_t param_channel,
                 const uint32_t param_height, const uint32_t param_width);
-
+            
+            /**
+             * @brief 设置权重
+             * 
+             * @param weights 
+             */
+            void set_weights(const std::vector<TensorSP> &weights);
         protected:
             std::vector<TensorSP> weight_tensors_;
             std::vector<TensorSP> bias_tensors_;

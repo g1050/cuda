@@ -50,4 +50,16 @@ namespace vega_rt {
             this->bias_tensors_.at(i) = vega_rt::TensorCreate(param_channel, param_height, param_width);
         }
     }
+
+    void ParameterLayer::set_weights(const std::vector<TensorSP> &weights) {
+        CHECK(weights.size() == this->weight_tensors_.size())
+        << "Weight size mismatch";
+        for(uint32_t i = 0; i < weights.size(); ++i) {
+            CHECK(weights.at(i) != nullptr)
+            << "Weight is nullptr";
+            CHECK(weights.at(i)->shape() == this->weight_tensors_.at(i)->shape())
+            << "Weight shape mismatch";
+        }
+        this->weight_tensors_ = weights;
+    }
 }

@@ -61,6 +61,13 @@ namespace vega_rt {
             std::vector<uint32_t> shapes() const ;
             arma::fmat &slice(uint32_t channel);
 
+            /**
+             * @brief 返回指定通道的原始数据指针
+             * 
+             * @param channel 通道索引
+             * @return float* 
+             */
+            float* matrix_raw_ptr(uint32_t channel);
         private:    
             std::vector<uint32_t> raw_shape_;
             arma::fcube data_;

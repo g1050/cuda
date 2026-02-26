@@ -1,6 +1,7 @@
 #include "tensor.hpp"
 #include "common.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <iostream>
 namespace vega_rt {
 
@@ -78,5 +79,11 @@ namespace vega_rt {
     arma::fmat &Tensor<float>::slice(uint32_t channel) {
         CHECK_LT(channel, this->channels());
         return data_.slice(channel);
+    }
+
+    float* Tensor<float>::matrix_raw_ptr(uint32_t channel) {
+        CHECK_LT(channel, this->channels());
+        uint32_t offset = channel * this->rows() * this->cols();
+        return this->data_.memptr() + offset;
     }
 }
