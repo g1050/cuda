@@ -30,7 +30,15 @@ namespace vega_rt {
             explicit Tensor(const std::vector<uint32_t> &shapes);
 
             std::vector<uint32_t> raw_shape() const { return raw_shape_; }
-            std::vector<uint32_t> shape() const { return {raw_shape_[0], raw_shape_[1], raw_shape_[2]}; }
+            std::vector<uint32_t> shape() const {
+                if (raw_shape_.size() == 1) {
+                    return {1, 1, raw_shape_[0]};
+                } else if (raw_shape_.size() == 2) {
+                    return {1, raw_shape_[0], raw_shape_[1]};
+                } else {
+                    return {raw_shape_[0], raw_shape_[1], raw_shape_[2]};
+                }
+            }
             float at(uint32_t channel, uint32_t row, uint32_t col) const ;
             void Fill(const std::vector<float>& values, bool row_major) ;
             uint32_t size() const { return data_.n_elem; }

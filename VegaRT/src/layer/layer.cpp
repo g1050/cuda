@@ -58,8 +58,20 @@ namespace vega_rt {
             CHECK(weights.at(i) != nullptr)
             << "Weight is nullptr";
             CHECK(weights.at(i)->shape() == this->weight_tensors_.at(i)->shape())
-            << "Weight shape mismatch";
+            << "Weight shape mismatch" << ShapeStr(weights.at(i)->shape()) << " != " << ShapeStr(this->weight_tensors_.at(i)->shape());
         }
         this->weight_tensors_ = weights;
+    }
+
+    void ParameterLayer::set_bias(const std::vector<TensorSP> &biases) {
+        CHECK(biases.size() == this->bias_tensors_.size())
+        << "Bias size mismatch";
+        for(uint32_t i = 0; i < biases.size(); ++i) {
+            CHECK(biases.at(i) != nullptr)
+            << "Bias is nullptr";
+            CHECK(biases.at(i)->shape() == this->bias_tensors_.at(i)->shape())
+            << "Bias shape mismatch";
+        }
+        this->bias_tensors_ = biases;
     }
 }

@@ -2,6 +2,7 @@
 #include "../layer.hpp"
 #include <cstdint>
 #include "../layer_factory.hpp"
+#include "../../utils.hpp"
 namespace vega_rt {
     class ConvLayer : public ParameterLayer {
         public:
@@ -44,7 +45,14 @@ namespace vega_rt {
                 uint32_t input_h, uint32_t input_c_group,
                 uint32_t group, uint32_t row_len,
                 uint32_t col_len) const;
+            
+            /**
+             * @brief 初始化卷积核到frowvec
+             * 
+             */
+            void InitIm2ColWeight();
 
+            std::vector<arma::frowvec> kernel_matrix_arr_;  // frowvec:float row vector，单精度行向量
             uint32_t output_channels_;
             uint32_t input_channels_;
             uint32_t kernel_h_;

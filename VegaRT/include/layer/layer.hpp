@@ -65,6 +65,14 @@ namespace vega_rt {
              * @param weights 
              */
             void set_weights(const std::vector<TensorSP> &weights);
+
+            /**
+             * @brief 设置偏置
+             *
+             * @param biases
+             */
+            void set_bias(const std::vector<TensorSP> &biases);
+
         protected:
             std::vector<TensorSP> weight_tensors_;
             std::vector<TensorSP> bias_tensors_;

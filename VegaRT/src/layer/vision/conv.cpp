@@ -12,7 +12,7 @@ namespace vega_rt {
         stride_h_(stride_h), stride_w_(stride_w),
         groups_(groups), use_bias_(use_bias) {
             // 分组卷积
-            if(groups_ != 1){
+            if(groups_ != 1){ // 修改了输入通道数
                 input_channels_ /= groups_;
             }
             this->InitWeightParameters(output_channels_, input_channels_, kernel_h_, kernel_w_);
@@ -74,10 +74,12 @@ namespace vega_rt {
                 input->matrix_raw_ptr(ic + group * input_c_group);
             uint32_t current_col = 0;
             uint32_t channel_row = ic * row_len;
+            // 按照列滑动
             for (uint32_t w = 0; w <= input_padded_w - kernel_w; w += stride_w_) {
                 for (uint32_t r = 0; r <= input_padded_h - kernel_h; r += stride_h_) {
                     float* input_matrix_ptr =
-                        input_matrix.colptr(current_col) + channel_row; // 按照通道拼接
+                        input_matrix.colptr(current_col) + channel_row; // 列主序，所以一列一个patch,按照通道拼接
+                    // 按照列展开
                     for (uint32_t kw = 0; kw < kernel_w; ++kw) {
                         for (uint32_t kh = 0; kh < kernel_h; ++kh) {
                             const uint32_t logical_row = r + kh; // 输入矩阵上的位置+kernel内的位置
@@ -105,8 +107,50 @@ namespace vega_rt {
             }
         }
 
-
+        // 常见框架习惯：一行一个 patch（一个输出位置的 receptive field），转置便于后续矩阵乘法
+        // return input_matrix.t();
         return input_matrix;
+    }
+
+    void ConvLayer::InitIm2ColWeight() {
+        const uint32_t kernel_count = weight_tensors_.size();
+        CHECK(kernel_count > 0) << "kernel count must greater than zero";
+        const uint32_t kernel_h = weight_tensors_.at(0)->rows();
+        const uint32_t kernel_w = weight_tensors_.at(0)->cols();
+        const uint32_t kernel_c = weight_tensors_.at(0)->channels();
+        const uint32_t kernel_size = kernel_c * kernel_h * kernel_w;  // 每个卷积核展开后的大小
+        CHECK(kernel_h > 0 && kernel_w > 0 && kernel_c > 0)
+            << "The size of kernel matrix should be greater than zero";
+
+        const uint32_t kernel_count_group = kernel_count / groups_;
+        CHECK(kernel_count_group > 0) << "kernel_count_group must be greater than zero";
+
+        for(uint32_t i=0;i<kernel_count;++i){
+            CHECK(weight_tensors_.at(i)->channels() == kernel_c) << "kernel_c mismatch";
+            CHECK(weight_tensors_.at(i)->channels() == input_channels_) << "kernel_c mismatch";
+        }
+
+        kernel_matrix_arr_.resize(groups_);
+        for(uint32_t g = 0; g < groups_; ++g) {
+            arma::frowvec& current_vect = kernel_matrix_arr_.at(g);
+            current_vect.resize(kernel_count_group * kernel_size);
+
+            // 填充权重数据：按组组织，每组 kernel_count_group 个卷积核
+            uint32_t weight_idx = g * kernel_count_group;
+            uint32_t offset = 0;
+            for(uint32_t k = 0; k < kernel_count_group; ++k) {
+                const TensorSP& kernel_tensor = weight_tensors_.at(weight_idx + k);
+                // 将 3D 权重张量 (c,h,w) 展开为 1D 向量
+                for(uint32_t c = 0; c < kernel_c; ++c) {
+                    for(uint32_t h = 0; h < kernel_h; ++h) {
+                        for(uint32_t w = 0; w < kernel_w; ++w) {
+                            current_vect[offset++] = kernel_tensor->at(c, h, w);
+                        }
+                    }
+                }
+            }
+        }
+
     }
     VegaError ConvLayer::Forward(const std::vector<TensorSP> &inputs, std::vector<TensorSP> &outputs) {
         CHECK(Check(inputs, outputs) == VegaError::Success) << "ConvLayer::Forward input, output, parameter, weight, bias check failed";
@@ -127,9 +171,16 @@ namespace vega_rt {
             CHECK(weight_tensors_.at(i)->channels() == kernel_c) << "kernel_c mismatch";
         }
 
+        // 展开卷积核到frowvec
+        if(kernel_matrix_arr_.empty()){
+            for(uint32_t i = 0; i < kernel_count; ++i) {
+                InitIm2ColWeight();
+            }
+        }
+
         for(uint32_t i = 0; i < batch_size; ++i) {
             const TensorSP &input = inputs.at(i);
-            const TensorSP &output = outputs.at(i);
+
             CHECK(input != nullptr && !input->empty()) << "input is nullptr or empty";
             const uint32_t input_c = input->channels();
             const uint32_t input_padded_h = input->rows() + 2 * padding_h_;
@@ -148,12 +199,21 @@ namespace vega_rt {
             const uint32_t col_len = output_h * output_w;
             CHECK(col_len > 0) << "col_len must be greater than 0";
 
+            TensorSP &output = outputs.at(i);//按batch_size选择
+            if (output == nullptr || output->empty()){
+                output = TensorCreate(output_channels_, output_h, output_w);
+            }
+
             // 按组处理：Im2Col 的 group 参数为当前组索引 (0 .. groups_-1)，不是分组总数
             for (uint32_t g = 0; g < groups_; ++g) {
+                // 讲输入矩阵im2col展开
                 const auto& input_matrix =
                     Im2Col(input, kernel_w, kernel_h, input->cols(), input->rows(),
                            input_c_group, g, row_length, col_len);
-                LOG(ERROR) << "input_matrix: " << input_matrix;  // TODO: 与权重矩阵乘、写 output
+                LOG(ERROR) << "input_matrix: " << input_matrix; 
+                 
+                const uint32_t kernel_count_group_start = kernel_count_group * g;
+                
             }
         }
         return VegaError::Success;
